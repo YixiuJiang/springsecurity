@@ -15,29 +15,35 @@
  */
 package au.com.jiangren.springsecurity.config;
 
+import au.com.jiangren.springsecurity.basic.MyBasicAuthenticationEntryPoint;
+import au.com.jiangren.springsecurity.filter.CustomFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 /**
  * @author Joe Grandja
  */
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+    @Autowired
+    private MyBasicAuthenticationEntryPoint authenticationEntryPoint;
 
-    // @formatter:off
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http
-                .authorizeRequests()
-                .antMatchers("/css/**", "/index").permitAll()
-                .antMatchers("/user/**").hasRole("USER")
+        http.authorizeRequests()
+                .antMatchers("/index").permitAll()
+                .anyRequest().authenticated()
                 .and()
-                .formLogin().loginPage("/login").failureUrl("/login-error");
+                .httpBasic()
+                .authenticationEntryPoint(authenticationEntryPoint);
+
+        http.addFilterAfter(new CustomFilter(),
+                BasicAuthenticationFilter.class);
     }
-    // @formatter:on
 
     // @formatter:off
     @Autowired
